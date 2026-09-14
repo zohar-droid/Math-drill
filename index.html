@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Web App</title>
+
+```
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 20px;
+    }
+
+    input, button {
+        width: 100%;
+        padding: 10px;
+        margin: 6px 0;
+        box-sizing: border-box;
+    }
+
+    button {
+        cursor: pointer;
+    }
+
+    .box {
+        border: 1px solid #ccc;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+    }
+
+    #status {
+        margin-top: 20px;
+        padding: 10px;
+        background: #f0f0f0;
+        min-height: 20px;
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+<h1>My Web App</h1>
+
+<div class="box">
+    <h2>Register</h2>
+
+```
+<input id="registerEmail" type="email" placeholder="Email">
+
+<input id="registerPassword" type="password" placeholder="Password">
+
+<input id="registerNickname" type="text" placeholder="Nickname">
+
+<button onclick="register()">Register</button>
+```
+
+</div>
+
+<div class="box">
+    <h2>Login</h2>
+
+```
+<input id="loginEmail" type="email" placeholder="Email">
+
+<input id="loginPassword" type="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+<button onclick="logout()">Logout</button>
+```
+
+</div>
+
+<div class="box">
+    <h2>User</h2>
+
+```
+<div id="userInfo">Not logged in</div>
+```
+
+</div>
+<div class="box">
+    <h2>My Data</h2>
+
+    <input id="myData" type="text" placeholder="Enter some data">
+
+    <button onclick="saveData()">Save</button>
+
+    <h3>Saved data:</h3>
+
+    <div id="savedData"></div>
+</div>
+<div id="status"></div>
+
+<script>
+
+    // ==========================================
+    // SUPABASE CONFIGURATION
+    // ==========================================
+
+    const SUPABASE_URL =
+        "https://xyyvgqxnaxabqlukjkhu.supabase.co";
+
+    const SUPABASE_KEY =
+        "sb_publishable_tgVPumj5OGCxok2uOqOezQ_vKSHag-8";
+
+    const supabaseClient =
+        supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+
+    // ==========================================
+    // STATUS
+    // ==========================================
+
+    function setStatus(message) {
+        document.getElementById("status").innerText = message;
+    }
+
+
+    // ==========================================
+    // REGISTER
+    // ==========================================
+
+    async function register() {
+
+        const email =
+            document.getElementById("registerEmail").value;
+
+        const password =
+            document.getElementById("registerPassword").value;
+
+        const nickname =
+            document.getElementById("registerNickname").value;
+
+        if (!email || !password || !nickname) {
+            setStatus("Please fill in all fields.");
+            return;
+        }
+
+        setStatus("Registering...");
+
+        const {
+            data,
+            error
+        } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password
+        });
+
+        if (error) {
+            setStatus(
+                "Registration error: " +
+                error.message
+            );
+            return;
+        }
+
+        if (!data.user) {
+            setStatus("Registration failed.");
+            return;
+        }
+
+        // Create profile
+        const {
+            error: profileError
+        } = await supabaseClient
+            .from("profiles")
+            .insert({
+                id: data.user.id,
+                nickname: nickname,
+                username: email
+            });
+
+        if (profileError) {
+            setStatus(
+                "User created, but profile failed: " +
+                profileError.message
+            );
+            return;
+        }
+
+        setStatus("Registration successful!");
+
+        await updateUserDisplay();
+        await loadMyData();
+    }
+
+
+    // ==========================================
+    // LOGIN
+    // ==========================================
+
+    async function login() {
+
+        const email =
+            document.getElementById("loginEmail").value;
+
+        const password =
+            document.getElementById("loginPassword").value;
+
+        setStatus("Logging in...");
+
+        const {
+            data,
+            error
+        } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) {
+            setStatus(
+                "Login error: " +
+                error.message
+            );
+            return;
+        }
+
+        setStatus("Login successful!");
+
+        await updateUserDisplay();
+        await loadMyData();
+    }
+
+
+    // ==========================================
+    // LOGOUT
+    // ==========================================
+
+    async function logout() {
+
+        const { error } =
+            await supabaseClient.auth.signOut();
+
+        if (error) {
+            setStatus(
+                "Logout error: " +
+                error.message
+            );
+            return;
+        }
+
+        document.getElementById("userInfo").innerText =
+            "Not logged in";
+
+        document.getElementById("savedData").innerText =
+            "Not logged in.";
+
+        setStatus("Logged out.");
+    }
+
+
+    // ==========================================
+    // DISPLAY CURRENT USER
+    // ==========================================
+
+    async function updateUserDisplay() {
+
+        const {
+            data: { user }
+        } = await supabaseClient.auth.getUser();
+
+        if (!user) {
+
+            document.getElementById("userInfo").innerText =
+                "Not logged in";
+
+            return;
+        }
+
+        const {
+            data: profile,
+            error
+        } = await supabaseClient
+            .from("profiles")
+            .select("nickname")
+            .eq("id", user.id)
+            .single();
+
+        if (error) {
+
+            document.getElementById("userInfo").innerText =
+                "Logged in as: " + user.email;
+
+            return;
+        }
+
+        document.getElementById("userInfo").innerText =
+            "Email: " + user.email +
+            "\nNickname: " + profile.nickname;
+    }
+
+
+    // ==========================================
+    // SAVE USER DATA
+    // ==========================================
+
+    async function saveData() {
+
+        const value =
+            document.getElementById("myData").value;
+
+        if (!value) {
+            setStatus("Enter some data first.");
+            return;
+        }
+
+        const {
+            data: { user }
+        } = await supabaseClient.auth.getUser();
+
+        if (!user) {
+            setStatus("You must be logged in.");
+            return;
+        }
+
+        const { error } =
+            await supabaseClient
+                .from("user_data")
+                .insert({
+                    user_id: user.id,
+                    data: value
+                });
+
+        if (error) {
+
+            setStatus(
+                "Save error: " +
+                error.message
+            );
+
+            return;
+        }
+
+        setStatus("Data saved!");
+
+        document.getElementById("myData").value = "";
+
+        await loadMyData();
+    }
+
+
+    // ==========================================
+    // LOAD USER DATA
+    // ==========================================
+
+    async function loadMyData() {
+
+        const {
+            data: { user }
+        } = await supabaseClient.auth.getUser();
+
+        if (!user) {
+
+            document.getElementById("savedData").innerText =
+                "Not logged in.";
+
+            return;
+        }
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("user_data")
+            .select("id, data, created_at")
+            .order("created_at", {
+                ascending: false
+            });
+
+        if (error) {
+
+            document.getElementById("savedData").innerText =
+                "Error: " + error.message;
+
+            return;
+        }
+
+        if (data.length === 0) {
+
+            document.getElementById("savedData").innerText =
+                "No data yet.";
+
+            return;
+        }
+
+        document.getElementById("savedData").innerText =
+            data.map(row => row.data).join("\n");
+    }
+
+
+    // ==========================================
+    // PAGE START
+    // ==========================================
+
+    async function initializeApp() {
+
+    const {
+        data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if (session) {
+        await updateUserDisplay();
+        await loadMyData();
+    } else {
+        document.getElementById("userInfo").innerText =
+            "Not logged in";
+
+        document.getElementById("savedData").innerText =
+            "Not logged in.";
+    }
+}
+
+initializeApp();
+
+</script>
+
+
+</body>
+</html>
