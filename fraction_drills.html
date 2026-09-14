@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>תרגילי חשבון</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --board: #1B3A2F;
+    --panel: #20463A;
+    --panel-edge: #2E5A4A;
+    --chalk: #F1EDE4;
+    --chalk-dim: #C9D6CD;
+    --yellow: #E8B94A;
+    --sage: #7FA88F;
+    --sage-dark: #5C8672;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(ellipse at top left, rgba(255,255,255,0.03), transparent 60%),
+      var(--board);
+    font-family:'Rubik', sans-serif;
+    color: var(--chalk);
+    padding: 24px;
+  }
+  .card{
+    width: 100%;
+    max-width: 460px;
+    background: var(--panel);
+    border: 1px solid var(--panel-edge);
+    border-radius: 14px;
+    padding: 32px 28px 28px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+  }
+  h1{
+    font-family: 'Rubik', sans-serif;
+    font-weight: 800;
+    font-size: 34px;
+    margin: 0 0 4px;
+    color: var(--chalk);
+  }
+  .sub{
+    color: var(--chalk-dim);
+    font-size: 14px;
+    margin-bottom: 26px;
+  }
+  .tabs{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .tab-btn{
+    flex: 1 1 45%;
+    background: transparent;
+    border: 1.5px solid var(--panel-edge);
+    color: var(--chalk-dim);
+    padding: 9px 6px;
+    border-radius: 8px;
+    font-family: 'Rubik', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .tab-btn:hover{
+    border-color: var(--sage);
+  }
+  .tab-btn.active{
+    background: var(--sage-dark);
+    border-color: var(--sage-dark);
+    color: var(--chalk);
+  }
+  .row{
+    display:flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  button{
+    flex:1;
+    font-family: 'Rubik', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 13px 10px;
+    border-radius: 9px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.08s ease, filter 0.15s ease;
+  }
+  button:active{ transform: scale(0.97); }
+  #genBtn{
+    background: var(--yellow);
+    color: #2A2110;
+  }
+  #genBtn:hover{ filter: brightness(1.08); }
+  #diffBtn{
+    background: transparent;
+    color: var(--chalk);
+    border: 1.5px solid var(--sage);
+  }
+  #diffBtn:hover{ background: rgba(127,168,143,0.15); }
+  .diff-tag{
+    display:inline-block;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    padding: 2px 9px;
+    border-radius: 20px;
+    background: var(--sage-dark);
+    color: var(--chalk);
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  .output{
+    min-height: 150px;
+    background: rgba(0,0,0,0.18);
+    border: 1px dashed var(--panel-edge);
+    border-radius: 10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 20px;
+  }
+  .placeholder{
+    color: var(--chalk-dim);
+    font-size: 14px;
+    text-align:center;
+  }
+  .equation{
+    direction: ltr;
+    display:flex;
+    align-items:center;
+    gap: 14px;
+    font-size: 26px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .frac{
+    display:inline-flex;
+    flex-direction: column;
+    align-items:stretch;
+    line-height: 1.2;
+  }
+  .frac .num, .frac .den{
+    padding: 0 6px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 30px;
+  }
+  .frac .bar{
+    height: 3px;
+    background: var(--chalk);
+    margin: 3px 0;
+    align-self: stretch;
+  }
+  .op{ color: var(--yellow); font-weight: 700; }
+  .answer-line{
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--chalk-dim);
+    text-align: center;
+    width: 100%;
+  }
+  .reveal{
+    color: var(--yellow);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .mixed{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mixed .whole{
+    font-size: 32px;
+    font-weight: 700;
+  }
+  .hidden{
+    display: none !important;
+  }
+  .grade-grid{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .grade-btn{
+    background: transparent;
+    border: 1.5px solid var(--panel-edge);
+    color: var(--chalk);
+    padding: 18px 10px;
+    border-radius: 10px;
+    font-family: 'Rubik', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.08s ease;
+  }
+  .grade-btn:active{ transform: scale(0.97); }
+  .grade-btn:hover{
+    border-color: var(--sage);
+    background: rgba(127,168,143,0.12);
+  }
+  .grade-btn.has-content{
+    border-color: var(--yellow);
+    color: var(--yellow);
+  }
+  .grade-btn .grade-tag{
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--chalk-dim);
+    margin-top: 4px;
+    letter-spacing: 0.3px;
+  }
+  .grade-btn.has-content .grade-tag{
+    color: var(--yellow);
+  }
+  .grade-header{
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .back-btn{
+    flex: none;
+    width: auto;
+    background: transparent;
+    border: none;
+    color: var(--sage);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 4px 0;
+    cursor: pointer;
+  }
+  .back-btn:hover{ color: var(--chalk); }
+  h2{
+    font-family: 'Rubik', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    margin: 0;
+    color: var(--chalk);
+  }
+  .placeholder-output .placeholder{
+    padding: 10px 8px;
+  }
+  .word-problem{
+    font-size: 16px;
+    line-height: 1.7;
+    text-align: right;
+    white-space: pre-line;
+  }
+  .word-problem .answer-line{
+    text-align: right;
+    margin-top: 18px;
+  }
+  .answer-input{
+    display: block;
+    width: 100%;
+    background: rgba(0,0,0,0.25);
+    border: 1.5px solid var(--sage);
+    color: var(--chalk);
+    font-family: 'Rubik', sans-serif;
+    font-size: 15px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-top: 16px;
+    box-sizing: border-box;
+  }
+  .answer-input::placeholder{
+    color: var(--chalk-dim);
+  }
+  .answer-input:focus{
+    outline: none;
+    border-color: var(--yellow);
+  }
+  .test-toggle-btn{
+    background: transparent;
+    border: 1.5px dashed var(--yellow);
+    color: var(--yellow);
+    width: 100%;
+    margin-bottom: 14px;
+  }
+  .test-toggle-btn:hover{
+    background: rgba(232,185,74,0.1);
+  }
+  .test-panel{
+    background: rgba(0,0,0,0.18);
+    border: 1px solid var(--panel-edge);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  .test-panel-title{
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--chalk);
+    margin-bottom: 10px;
+  }
+  .test-checkboxes{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .test-checkbox-label{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--chalk-dim);
+    cursor: pointer;
+  }
+  .test-checkbox-label input{
+    accent-color: var(--yellow);
+    width: 16px;
+    height: 16px;
+  }
+  .test-count-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: var(--chalk-dim);
+  }
+  .test-count-row select{
+    background: rgba(0,0,0,0.25);
+    border: 1.5px solid var(--sage);
+    color: var(--chalk);
+    font-family: 'Rubik', sans-serif;
+    font-size: 13px;
+    padding: 6px 8px;
+    border-radius: 6px;
+  }
+  .test-start-btn{
+    background: var(--yellow);
+    color: #2A2110;
+    width: 100%;
+  }
+  .test-list{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+  }
+  .test-item{
+    border-bottom: 1px solid var(--panel-edge);
+    padding-bottom: 18px;
+  }
+  .test-item:last-child{
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .test-q-label{
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--yellow);
+    margin-bottom: 8px;
+  }
+  .avg-badge{
+    display: inline-block;
+    background: var(--yellow);
+    color: #2A2110;
+    font-weight: 800;
+    font-size: 20px;
+    padding: 4px 14px;
+    border-radius: 8px;
+    margin: 0 4px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="card">
+
+    <!-- MAIN MENU: pick a grade -->
+    <div id="screenMain">
+      <h1>תרגילי חשבון</h1>
+      <div class="sub">בחרו כיתה כדי להתחיל להתאמן</div>
+      <div class="grade-grid" id="gradeGrid"></div>
+    </div>
+
+    <!-- GRADE DETAIL -->
+    <div id="screenGrade" class="hidden">
+      <div class="grade-header">
+        <button class="back-btn" id="backBtn">חזרה לכיתות</button>
+        <h2 id="gradeTitle">כיתה ד</h2>
+      </div>
+
+      <div id="grade4Content" class="hidden">
+        <div class="tabs">
+          <button class="tab-btn active" id="tabFraction">שברים</button>
+          <button class="tab-btn" id="tabArithmetic">סדר פעולות</button>
+          <button class="tab-btn" id="tabToImproper">מעורב &rarr; לא רגיל</button>
+          <button class="tab-btn" id="tabToMixed">לא רגיל &rarr; מעורב</button>
+          <button class="tab-btn" id="tabMultiply">כפל</button>
+          <button class="tab-btn" id="tabWordProblems">בעיות מילוליות</button>
+          <button class="tab-btn" id="tabNumberLine">ציר מספרים</button>
+          <button class="tab-btn" id="tabDecimals">עשרוניים</button>
+        </div>
+        <div class="sub">צרו תרגיל, או שנו את רמת הקושי<span class="diff-tag" id="diffTag">קל</span></div>
+
+        <div class="row">
+          <button id="genBtn">צור תרגיל</button>
+          <button id="diffBtn">שנה רמת קושי</button>
+        </div>
+
+        <button class="test-toggle-btn" id="openTestBuilder4">🧪 צור מבחן מותאם אישית</button>
+        <div class="test-panel hidden" id="testPanel4">
+          <div class="test-panel-title">בחרו אילו תרגילים ייכללו במבחן:</div>
+          <div class="test-checkboxes" id="testCheckboxes4"></div>
+          <div class="test-count-row">
+            <span>מספר שאלות:</span>
+            <select id="testCount4">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+            </select>
+          </div>
+          <button class="test-start-btn" id="startTest4">התחילו מבחן</button>
+        </div>
+
+        <div class="output" id="output">
+          <div class="placeholder">לחצו על "צור תרגיל" כדי לקבל תרגיל.</div>
+        </div>
+      </div>
+
+      <div id="grade5Content" class="hidden">
+        <div class="tabs">
+          <button class="tab-btn active" id="tabMultiplyG5">כפל שברים</button>
+          <button class="tab-btn" id="tabAverage">ממוצע</button>
+          <button class="tab-btn" id="tabDecimalsG5">עשרוניים</button>
+        </div>
+        <div class="sub">צרו תרגיל, או שנו את רמת הקושי<span class="diff-tag" id="diffTag5">קל</span></div>
+
+        <div class="row">
+          <button id="genBtn5">צור תרגיל</button>
+          <button id="diffBtn5">שנה רמת קושי</button>
+        </div>
+
+        <button class="test-toggle-btn" id="openTestBuilder5">🧪 צור מבחן מותאם אישית</button>
+        <div class="test-panel hidden" id="testPanel5">
+          <div class="test-panel-title">בחרו אילו תרגילים ייכללו במבחן:</div>
+          <div class="test-checkboxes" id="testCheckboxes5"></div>
+          <div class="test-count-row">
+            <span>מספר שאלות:</span>
+            <select id="testCount5">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+            </select>
+          </div>
+          <button class="test-start-btn" id="startTest5">התחילו מבחן</button>
+        </div>
+
+        <div class="output" id="output5">
+          <div class="placeholder">לחצו על "צור תרגיל" כדי לקבל תרגיל.</div>
+        </div>
+      </div>
+
+      <div id="comingSoonContent" class="hidden">
+        <div class="output placeholder-output">
+          <div class="placeholder">התרגילים לכיתה זו עדיין בבנייה — חזרו בקרוב!</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+  const DIFFICULTIES = ["Easy", "Medium", "Hard"];
+  const DIFF_LABELS_HE = { Easy: 'קל', Medium: 'בינוני', Hard: 'קשה' };
+  const GRADE_HE_LETTERS = { 3: 'ג', 4: 'ד', 5: 'ה', 6: 'ו', 7: 'ז', 8: 'ח', 9: 'ט', 10: 'י', 11: 'יא', 12: 'יב' };
+  let diffIndex = 0;
+  let currentAnswer = null;
+
+  const diffTag = document.getElementById('diffTag');
+  const diffBtn = document.getElementById('diffBtn');
+  const genBtn = document.getElementById('genBtn');
+  const output = document.getElementById('output');
+  const tabFraction = document.getElementById('tabFraction');
+  const tabArithmetic = document.getElementById('tabArithmetic');
+  const tabToImproper = document.getElementById('tabToImproper');
+  const tabToMixed = document.getElementById('tabToMixed');
+  const tabMultiply = document.getElementById('tabMultiply');
+  const tabWordProblems = document.getElementById('tabWordProblems');
+  const tabNumberLine = document.getElementById('tabNumberLine');
+  const tabDecimals = document.getElementById('tabDecimals');
+  let activeTab = 'fraction';
+
+  // ---- Navigation: main menu <-> grade detail ----
+
+  const screenMain = document.getElementById('screenMain');
+  const screenGrade = document.getElementById('screenGrade');
+  const gradeGrid = document.getElementById('gradeGrid');
+  const gradeTitle = document.getElementById('gradeTitle');
+  const backBtn = document.getElementById('backBtn');
+  const comingSoonContent = document.getElementById('comingSoonContent');
+
+  // Maps a grade number to its content element. Add an entry here as new grades get built out.
+  const CONTENT_BY_GRADE = {
+    4: document.getElementById('grade4Content'),
+    5: document.getElementById('grade5Content')
+  };
+
+  for(let g = 3; g <= 12; g++){
+    const btn = document.createElement('button');
+    const hasContent = !!CONTENT_BY_GRADE[g];
+    btn.className = 'grade-btn' + (hasContent ? ' has-content' : '');
+    const label = GRADE_HE_LETTERS[g] || g;
+    btn.innerHTML = `כיתה ${label}<span class="grade-tag">${hasContent ? 'תרגילים מוכנים' : 'בקרוב'}</span>`;
+    btn.addEventListener('click', () => showGrade(g));
+    gradeGrid.appendChild(btn);
+  }
+
+  function showGrade(grade){
+    screenMain.classList.add('hidden');
+    screenGrade.classList.remove('hidden');
+    gradeTitle.textContent = `כיתה ${GRADE_HE_LETTERS[grade] || grade}`;
+
+    Object.values(CONTENT_BY_GRADE).forEach(div => div.classList.add('hidden'));
+    const activeContent = CONTENT_BY_GRADE[grade];
+    comingSoonContent.classList.toggle('hidden', !!activeContent);
+    if(activeContent){
+      activeContent.classList.remove('hidden');
+    }
+
+    if(grade === 4){
+      setActiveTab('fraction');
+    }
+    if(grade === 5){
+      setActiveTab5('multiply');
+    }
+  }
+
+  backBtn.addEventListener('click', () => {
+    screenGrade.classList.add('hidden');
+    screenMain.classList.remove('hidden');
+  });
+
+  function gcd(a, b){ return b === 0 ? a : gcd(b, a % b); }
+
+  function randInt(min, max){
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function simplify(n, d){
+    if(n === 0) return [0, 1];
+    const g = gcd(Math.abs(n), Math.abs(d));
+    return [n / g, d / g];
+  }
+
+  function fracFromDen(den, maxNum){
+    const num = randInt(1, Math.min(maxNum, den - 1) || 1);
+    return { type: 'frac', num, den };
+  }
+
+  // A mixed number term: a whole number fused with a proper fraction, e.g. 2 3/4.
+  // If forceWhole is false, there's a chance the whole part is 0 (plain fraction).
+  function makeHardTerm(den, forceWhole){
+    const whole = forceWhole ? randInt(1, 9) : (Math.random() < 0.5 ? randInt(1, 9) : 0);
+    const num = randInt(1, den - 1);
+    if(whole === 0){
+      return { type: 'frac', num, den };
+    }
+    return { type: 'mixed', whole, num, den };
+  }
+
+  function makeDistinctDenoms(min, max){
+    const d1 = randInt(min, max);
+    let d2 = randInt(min, max);
+    while(d2 === d1){ d2 = randInt(min, max); }
+    return [d1, d2];
+  }
+
+  function toFrac(term){
+    if(term.type === 'int') return { num: term.value, den: 1 };
+    if(term.type === 'mixed') return { num: term.whole * term.den + term.num, den: term.den };
+    return term;
+  }
+
+  function combine(f1, op, f2){
+    let n, d;
+    if(op === '+'){ n = f1.num * f2.den + f2.num * f1.den; d = f1.den * f2.den; }
+    else if(op === '-'){ n = f1.num * f2.den - f2.num * f1.den; d = f1.den * f2.den; }
+    else { n = f1.num * f2.num; d = f1.den * f2.den; }
+    let [sn, sd] = simplify(n, d);
+    if(sd < 0){ sn *= -1; sd *= -1; }
+    return { num: sn, den: sd };
+  }
+
+  // Terms is a list of {type:'frac', num, den} or {type:'int', value}.
+  // Ops is a list of '+', '-', or '\u00d7', one shorter than terms.
+  function generateProblem(level){
+    let terms, ops;
+
+    if(level === "Easy"){
+      // Same denominator for both fractions.
+      const den = randInt(2, 8);
+      terms = [fracFromDen(den, den - 1), fracFromDen(den, den - 1)];
+      ops = ['+'];
+    } else if(level === "Medium"){
+      // Different denominators for the two fractions.
+      const [d1, d2] = makeDistinctDenoms(2, 10);
+      terms = [fracFromDen(d1, d1 - 1), fracFromDen(d2, d2 - 1)];
+      ops = [Math.random() < 0.5 ? '+' : '-'];
+    } else {
+      // Different denominators, plus a whole number term.
+      const [d1, d2] = makeDistinctDenoms(2, 12);
+      terms = [makeHardTerm(d1, true), makeHardTerm(d2, false)];
+      ops = [Math.random() < 0.5 ? '+' : '-'];
+    }
+
+    let result = toFrac(terms[0]);
+    for(let i = 0; i < ops.length; i++){
+      result = combine(result, ops[i], toFrac(terms[i + 1]));
+    }
+
+    return { terms, ops, resNum: result.num, resDen: result.den };
+  }
+
+  function termHTML(term){
+    if(term.type === 'int'){
+      return `<span class="frac"><span class="num">${term.value}</span></span>`;
+    }
+    if(term.type === 'mixed'){
+      return `<span class="mixed"><span class="whole">${term.whole}</span><span class="frac"><span class="num">${term.num}</span><span class="bar"></span><span class="den">${term.den}</span></span></span>`;
+    }
+    const sign = term.num < 0 ? '-' : '';
+    return `<span class="frac">${sign}<span class="num">${Math.abs(term.num)}</span><span class="bar"></span><span class="den">${term.den}</span></span>`;
+  }
+
+  function renderFraction(problem, targetOutput){
+    const out = targetOutput || output;
+    const sign = problem.resNum < 0 ? '-' : '';
+    const answerText = problem.resDen === 1
+      ? `${problem.resNum}`
+      : `${sign}${Math.abs(problem.resNum)}/${problem.resDen}`;
+
+    let pieces = [termHTML(problem.terms[0])];
+    for(let i = 0; i < problem.ops.length; i++){
+      pieces.push(`<span class="op">${problem.ops[i]}</span>`);
+      pieces.push(termHTML(problem.terms[i + 1]));
+    }
+
+    out.innerHTML = `
+      <div class="equation">
+        ${pieces.join('\n        ')}
+        <span class="op">=</span>
+        <span class="frac"><span class="num">?</span></span>
+        <input type="text" class="answer-input" dir="ltr" placeholder="הכניסו את התשובה שלכם" />
+        <div class="answer-line">
+          <span class="reveal">הצג תשובה</span>
+        </div>
+      </div>
+    `;
+    out.querySelector('.reveal').addEventListener('click', (e) => {
+      e.target.outerHTML = `תשובה: ${answerText}`;
+    });
+  }
+
+  // ---- Grade 5: Fraction Multiplication drill ----
+
+  function generateMultiply(level){
+    let terms;
+
+    if(level === "Easy"){
+      // A proper fraction times a small whole number.
+      const den = randInt(2, 8);
+      const num = randInt(1, den - 1);
+      const whole = randInt(2, 5);
+      terms = [{ type: 'frac', num, den }, { type: 'int', value: whole }];
+    } else if(level === "Medium"){
+      // Two proper fractions with different denominators.
+      const [d1, d2] = makeDistinctDenoms(2, 10);
+      terms = [fracFromDen(d1, d1 - 1), fracFromDen(d2, d2 - 1)];
+    } else {
+      // A mixed number times a proper fraction.
+      const [d1, d2] = makeDistinctDenoms(2, 12);
+      terms = [makeHardTerm(d1, true), fracFromDen(d2, d2 - 1)];
+    }
+
+    const ops = ['\u00d7'];
+    const result = combine(toFrac(terms[0]), '\u00d7', toFrac(terms[1]));
+
+    return { terms, ops, resNum: result.num, resDen: result.den };
+  }
+
+  // ---- Grade 5: Average (ממוצע) drill ----
+
+  // Builds n numbers in [minVal, maxVal] whose average is exactly avg.
+  // Returns null if it can't find a valid combination within the range.
+  function generateNumbersWithAverage(n, avg, minVal, maxVal, maxAttempts){
+    for(let attempt = 0; attempt < maxAttempts; attempt++){
+      const numbers = [];
+      for(let i = 0; i < n - 1; i++) numbers.push(randInt(minVal, maxVal));
+      const last = avg * n - numbers.reduce((a, b) => a + b, 0);
+      if(last >= minVal && last <= maxVal){
+        numbers.push(last);
+        return numbers;
+      }
+    }
+    return null;
+  }
+
+  function generateAverage(level){
+    let n, minVal, maxVal;
+    if(level === "Easy"){ n = randInt(3, 4); minVal = 0; maxVal = 50; }
+    else if(level === "Medium"){ n = randInt(3, 5); minVal = 0; maxVal = 100; }
+    else { n = randInt(4, 6); minVal = 0; maxVal = 100; }
+
+    const avg = randInt(minVal, maxVal);
+    let numbers = generateNumbersWithAverage(n, avg, minVal, maxVal, 30);
+    if(!numbers){
+      // Fallback that's always valid: every number equals the average.
+      numbers = new Array(n).fill(avg);
+    }
+
+    // Always shown in ascending order.
+    numbers = numbers.slice().sort((a, b) => a - b);
+
+    const type = Math.random() < 0.5 ? 'compute' : 'findMissing';
+
+    if(type === 'compute'){
+      return { type: 'compute', numbers, avg };
+    }
+
+    const blankIndex = randInt(0, n - 1);
+    return { type: 'findMissing', numbers, avg, blankIndex, missingValue: numbers[blankIndex] };
+  }
+
+  function numberBoxesHTML(numbers, blankIndex){
+    return numbers.map((v, i) => {
+      const isBlank = (blankIndex !== undefined && i === blankIndex);
+      const val = isBlank ? '?' : v;
+      const color = isBlank ? 'color:var(--yellow);' : '';
+      return `<span class="frac"><span class="num" style="${color}">${val}</span></span>`;
+    }).join(' ');
+  }
+
+  function buildAverageSnippet(problem){
+    if(problem.type === 'compute'){
+      return {
+        html: `מה הממוצע של המספרים הבאים?<div class="equation" style="margin-top:10px;">${numberBoxesHTML(problem.numbers)}</div>`,
+        answer: `${problem.avg}`,
+        kind: 'word'
+      };
+    }
+    return {
+      html: `הממוצע של המספרים הבאים הוא <span class="avg-badge">${problem.avg}</span><div class="equation" style="margin-top:10px;">${numberBoxesHTML(problem.numbers, problem.blankIndex)}</div>מה המספר החסר?`,
+      answer: `${problem.missingValue}`,
+      kind: 'word'
+    };
+  }
+
+  function renderAverage(problem){
+    const snippet = buildAverageSnippet(problem);
+    output5.innerHTML = `
+      <div class="word-problem" style="text-align:center;">
+        ${snippet.html}
+        <input type="text" class="answer-input" dir="ltr" placeholder="הכניסו את התשובה שלכם" />
+        <div class="answer-line">
+          <span class="reveal">הצג תשובה</span>
+        </div>
+      </div>
+    `;
+    output5.querySelector('.reveal').addEventListener('click', (e) => {
+      e.target.outerHTML = `תשובה: ${snippet.answer}`;
+    });
+  }
+
+  const diffTag5 = document.getElementById('diffTag5');
+  const diffBtn5 = document.getElementById('diffBtn5');
+  const genBtn5 = document.getElementById('genBtn5');
+  const output5 = document.getElementById('output5');
+  const tabMultiplyG5 = document.getElementById('tabMultiplyG5');
+  const tabAverage = document.getElementById('tabAverage');
+  const tabDecimalsG5 = document.getElementById('tabDecimalsG5');
+  let diffIndex5 = 0;
+  let activeTab5 = 'multiply';
+
+  const TAB_LABELS_G5 = { multiply: 'כפל שברים', average: 'ממוצע', decimals: 'חיבור וחיסור עשרוני' };
+
+  function setActiveTab5(tab){
+    activeTab5 = tab;
+    tabMultiplyG5.classList.toggle('active', tab === 'multiply');
+    tabAverage.classList.toggle('active', tab === 'average');
+    tabDecimalsG5.classList.toggle('active', tab === 'decimals');
+    output5.innerHTML = `<div class="placeholder">לחצו על "צור תרגיל" כדי לקבל תרגיל ${TAB_LABELS_G5[tab]}.</div>`;
+  }
+
+  tabMultiplyG5.addEventListener('click', () => setActiveTab5('multiply'));
+  tabAverage.addEventListener('click', () => setActiveTab5('average'));
+  tabDecimalsG5.addEventListener('click', () => setActiveTab5('decimals'));
+
+  genBtn5.addEventListener('click', () => {
+    const level = DIFFICULTIES[diffIndex5];
+    if(activeTab5 === 'multiply'){
+      renderFraction(generateMultiply(level), output5);
+    } else if(activeTab5 === 'average'){
+      renderAverage(generateAverage(level));
+    } else {
+      renderArithmetic(generateDecimalG5(level), output5);
+    }
+  });
+
+  diffBtn5.addEventListener('click', () => {
+    diffIndex5 = (diffIndex5 + 1) % DIFFICULTIES.length;
+    diffTag5.textContent = DIFF_LABELS_HE[DIFFICULTIES[diffIndex5]];
+  });
+
+  function randSignOp(){
+    return Math.random() < 0.5 ? '+' : '-';
+  }
+
+  function applyOp(a, op, b){
+    return op === '+' ? a + b : a - b;
+  }
+
+  // Picks + or - between a and b, but never allows a '-' that would go negative.
+  // If a '-' would produce a negative result, it's swapped to '+' instead.
+  function combineSafe(a, b){
+    let op = randSignOp();
+    if(op === '-' && a - b < 0){ op = '+'; }
+    return { op, value: applyOp(a, op, b) };
+  }
+
+  function generateArithmetic(level){
+    let tokens, value;
+
+    if(level === "Easy"){
+      // Three numbers: a plain +/- combined with a x, no parentheses.
+      // Tests whether the person knows to multiply before adding/subtracting.
+      if(Math.random() < 0.5){
+        // a x b op c
+        const a = randInt(2, 12), b = randInt(2, 12), c = randInt(1, 20);
+        const mul = a * b;
+        const { op, value: v } = combineSafe(mul, c);
+        tokens = [`${a}`, '\u00d7', `${b}`, op, `${c}`];
+        value = v;
+      } else {
+        // a op b x c
+        const a = randInt(1, 20), b = randInt(2, 12), c = randInt(2, 12);
+        const mul = b * c;
+        const { op, value: v } = combineSafe(a, mul);
+        tokens = [`${a}`, op, `${b}`, '\u00d7', `${c}`];
+        value = v;
+      }
+    } else if(level === "Medium"){
+      // Five numbers: one parenthesized group of three terms, multiplied, plus an extra +/- term.
+      const a = randInt(2, 10), b = randInt(1, 10), c = randInt(1, 10);
+      const d = randInt(2, 9), e = randInt(1, 20);
+
+      const s1 = combineSafe(a, b);
+      const s2 = combineSafe(s1.value, c);
+      const mulResult = s2.value * d;
+      const s3 = combineSafe(mulResult, e);
+
+      tokens = ['(', `${a}`, s1.op, `${b}`, s2.op, `${c}`, ')', '\u00d7', `${d}`, s3.op, `${e}`];
+      value = s3.value;
+    } else {
+      // Eight numbers: two flat parenthesized groups (each multiplied), combined, plus an extra +/- term.
+      const a = randInt(2, 10), b = randInt(1, 10), c = randInt(1, 10), d = randInt(2, 9);
+      const e = randInt(2, 10), f = randInt(1, 10), g = randInt(2, 9), h = randInt(1, 20);
+
+      const s1 = combineSafe(a, b);
+      const s2 = combineSafe(s1.value, c);
+      const mulResult1 = s2.value * d;
+
+      const s3 = combineSafe(e, f);
+      const mulResult2 = s3.value * g;
+
+      const s4 = combineSafe(mulResult1, mulResult2);
+      const s5 = combineSafe(s4.value, h);
+
+      tokens = [
+        '(', `${a}`, s1.op, `${b}`, s2.op, `${c}`, ')', '\u00d7', `${d}`,
+        s4.op,
+        '(', `${e}`, s3.op, `${f}`, ')', '\u00d7', `${g}`,
+        s5.op, `${h}`
+      ];
+      value = s5.value;
+    }
+
+    return { tokens, value };
+  }
+
+  function styleToken(tok){
+    if(tok === '+' || tok === '-' || tok === '\u00d7'){
+      return `<span class="op">${tok}</span>`;
+    }
+    return `<span>${tok}</span>`;
+  }
+
+  function renderArithmetic(problem, targetOutput){
+    const out = targetOutput || output;
+    const styled = problem.tokens.map(styleToken).join(' ');
+    out.innerHTML = `
+      <div class="equation">
+        ${styled}
+        <span class="op">=</span>
+        <span>?</span>
+        <input type="text" class="answer-input" dir="ltr" placeholder="הכניסו את התשובה שלכם" />
+        <div class="answer-line">
+          <span class="reveal">הצג תשובה</span>
+        </div>
+      </div>
+    `;
+    out.querySelector('.reveal').addEventListener('click', (e) => {
+      e.target.outerHTML = `תשובה: ${problem.value}`;
+    });
+  }
+
+  const TAB_LABELS = {
+    fraction: 'שבר',
+    arithmetic: 'סדר פעולות',
+    toImproper: 'המרה לשבר לא רגיל',
+    toMixed: 'המרה למספר מעורב',
+    multiply: 'כפל',
+    wordProblems: 'בעיה מילולית',
+    numberLine: 'ציר מספרים',
+    decimals: 'חיבור עשרוני'
+  };
+
+  function setActiveTab(tab){
+    activeTab = tab;
+    tabFraction.classList.toggle('active', tab === 'fraction');
+    tabArithmetic.classList.toggle('active', tab === 'arithmetic');
+    tabToImproper.classList.toggle('active', tab === 'toImproper');
+    tabToMixed.classList.toggle('active', tab === 'toMixed');
+    tabMultiply.classList.toggle('active', tab === 'multiply');
+    tabWordProblems.classList.toggle('active', tab === 'wordProblems');
+    tabNumberLine.classList.toggle('active', tab === 'numberLine');
+    tabDecimals.classList.toggle('active', tab === 'decimals');
+    output.innerHTML = `<div class="placeholder">לחצו על "צור תרגיל" כדי לקבל תרגיל ${TAB_LABELS[tab]}.</div>`;
+  }
+
+  tabFraction.addEventListener('click', () => setActiveTab('fraction'));
+  tabArithmetic.addEventListener('click', () => setActiveTab('arithmetic'));
+  tabToImproper.addEventListener('click', () => setActiveTab('toImproper'));
+  tabToMixed.addEventListener('click', () => setActiveTab('toMixed'));
+  tabMultiply.addEventListener('click', () => setActiveTab('multiply'));
+  tabWordProblems.addEventListener('click', () => setActiveTab('wordProblems'));
+  tabNumberLine.addEventListener('click', () => setActiveTab('numberLine'));
+  tabDecimals.addEventListener('click', () => setActiveTab('decimals'));
+
+  // ---- Grade 4 extra drill: number line with blank points ----
+
+  function generateNumberLine(level){
+    let step, start, count, blanksCount;
+
+    if(level === "Easy"){
+      step = [1, 2][randInt(0, 1)];
+      start = 0;
+      count = randInt(6, 8);
+      blanksCount = 2;
+    } else if(level === "Medium"){
+      step = [2, 5, 10][randInt(0, 2)];
+      start = randInt(0, 3) * step;
+      count = randInt(6, 9);
+      blanksCount = 3;
+    } else {
+      step = [5, 10, 25][randInt(0, 2)];
+      start = randInt(0, 4) * step;
+      count = randInt(7, 9);
+      blanksCount = 4;
+    }
+
+    if(count < blanksCount + 2) count = blanksCount + 2;
+
+    const values = [];
+    for(let i = 0; i < count; i++) values.push(start + i * step);
+
+    const labelMode = new Array(count).fill('shown');
+    let blankIndices;
+
+    if(level === "Easy"){
+      // Blanks come from the middle so the first and last points always anchor the sequence.
+      const middleIndices = [];
+      for(let i = 1; i < count - 1; i++) middleIndices.push(i);
+      for(let i = middleIndices.length - 1; i > 0; i--){
+        const j = randInt(0, i);
+        [middleIndices[i], middleIndices[j]] = [middleIndices[j], middleIndices[i]];
+      }
+      blankIndices = middleIndices.slice(0, blanksCount).sort((a, b) => a - b);
+      blankIndices.forEach(i => { labelMode[i] = 'blank'; });
+    } else {
+      // Only the first two points are labeled (enough to work out the start and the step).
+      // Everything else is either a blank to solve, or a bare, unlabeled tick.
+      const candidateIndices = [];
+      for(let i = 2; i < count; i++) candidateIndices.push(i);
+      for(let i = candidateIndices.length - 1; i > 0; i--){
+        const j = randInt(0, i);
+        [candidateIndices[i], candidateIndices[j]] = [candidateIndices[j], candidateIndices[i]];
+      }
+      blankIndices = candidateIndices.slice(0, blanksCount).sort((a, b) => a - b);
+
+      for(let i = 0; i < count; i++){
+        if(i === 0 || i === 1) labelMode[i] = 'shown';
+        else if(blankIndices.includes(i)) labelMode[i] = 'blank';
+        else labelMode[i] = 'hidden';
+      }
+    }
+
+    return { values, blankIndices, labelMode };
+  }
+
+  function renderNumberLine(problem){
+    const { values, blankIndices, labelMode } = problem;
+    const count = values.length;
+    const width = Math.max(320, 70 * count);
+    const height = 100;
+    const paddingX = 40;
+    const y = 45;
+    const spacing = (width - 2 * paddingX) / (count - 1);
+
+    let marks = '';
+    for(let i = 0; i < count; i++){
+      const x = paddingX + i * spacing;
+      marks += `<line x1="${x}" y1="${y - 8}" x2="${x}" y2="${y + 8}" style="stroke:var(--chalk); stroke-width:2;" />`;
+      if(labelMode[i] === 'blank'){
+        marks += `<circle cx="${x}" cy="${y + 26}" r="15" style="fill:none; stroke:var(--yellow); stroke-width:2;" />`;
+        marks += `<text id="nlBlank${i}" x="${x}" y="${y + 31}" text-anchor="middle" style="fill:var(--yellow); font-size:15px; font-weight:700; font-family:'Rubik',sans-serif;">?</text>`;
+      } else if(labelMode[i] === 'shown'){
+        marks += `<text x="${x}" y="${y + 31}" text-anchor="middle" style="fill:var(--chalk); font-size:14px; font-weight:600; font-family:'Rubik',sans-serif;">${values[i]}</text>`;
+      }
+      // 'hidden' ticks get no text at all -- just the tick mark above.
+    }
+
+    output.innerHTML = `
+      <div class="word-problem" style="text-align:center;">
+        השלימו את הנקודות החסרות על ציר המספרים:
+        <svg viewBox="0 0 ${width} ${height}" style="width:100%; max-width:${width}px; direction:ltr; margin-top:12px;">
+          <line x1="${paddingX}" y1="${y}" x2="${width - paddingX}" y2="${y}" style="stroke:var(--chalk); stroke-width:2;" />
+          ${marks}
+        </svg>
+        <input type="text" class="answer-input" dir="ltr" placeholder="הכניסו את הערכים החסרים, מופרדים בפסיק" />
+        <div class="answer-line">
+          <span class="reveal">הצג תשובה</span>
+        </div>
+      </div>
+    `;
+
+    output.querySelector('.reveal').addEventListener('click', (e) => {
+      blankIndices.forEach(i => {
+        const el = output.querySelector(`#nlBlank${i}`);
+        if(el){
+          el.textContent = `${values[i]}`;
+          el.style.fill = 'var(--chalk)';
+        }
+      });
+      e.target.outerHTML = 'התשובות מוצגות למעלה';
+    });
+  }
+
+  // ---- Grade 4 extra drill: Hebrew word problems ----
+
+  const WORD_NAMES = [
+    { name: 'אופיר', pronoun: 'לה' },
+    { name: 'נועה', pronoun: 'לה' },
+    { name: 'מאיה', pronoun: 'לה' },
+    { name: 'תמר', pronoun: 'לה' },
+    { name: 'יונתן', pronoun: 'לו' },
+    { name: 'איתי', pronoun: 'לו' },
+    { name: 'דניאל', pronoun: 'לו' },
+    { name: 'עומר', pronoun: 'לו' }
+  ];
+
+  const UNIT_FRACTION_WORDS = { 2: 'חצי', 3: 'שליש', 4: 'רבע', 5: 'חמישית', 6: 'שישית', 7: 'שביעית', 8: 'שמינית', 9: 'תשיעית', 10: 'עשירית' };
+
+  const RATE_CONTEXTS = [
+    { text: (rate, count) => `להכנת בצק לפיצה אחת יש צורך ב-${rate} ק"ג בצק.\nכמה בצק צריך בשביל ${count} פיצות?`, unit: 'ק"ג' },
+    { text: (rate, count) => `להכנת עוגה אחת יש צורך ב-${rate} כוסות קמח.\nכמה כוסות קמח צריך בשביל ${count} עוגות?`, unit: 'כוסות' },
+    { text: (rate, count) => `לצביעת קיר אחד יש צורך ב-${rate} ליטר צבע.\nכמה צבע צריך כדי לצבוע ${count} קירות?`, unit: 'ליטר' },
+    { text: (rate, count) => `להשקיית עציץ אחד יש צורך ב-${rate} ליטר מים ביום.\nכמה מים צריך כדי להשקות ${count} עציצים ביום?`, unit: 'ליטר' }
+  ];
+
+  function formatKg(grams){
+    const kg = grams / 1000;
+    return Number.isInteger(kg) ? `${kg}` : `${kg}`.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+  }
+
+  function generateWordProblem(level){
+    const templateChoice = randInt(1, 3);
+
+    if(templateChoice === 1){
+      // Fraction-of-a-group: "1/3 of the class are girls" -> how many boys/girls.
+      let denomOptions;
+      if(level === "Easy") denomOptions = [2, 3, 4];
+      else if(level === "Medium") denomOptions = [2, 3, 4, 5, 6];
+      else denomOptions = [3, 4, 5, 6, 7, 8, 9, 10];
+
+      const denom = denomOptions[randInt(0, denomOptions.length - 1)];
+      const multiplier = level === "Easy" ? randInt(3, 8) : (level === "Medium" ? randInt(4, 10) : randInt(5, 15));
+      const total = denom * multiplier;
+      const girls = total / denom;
+      const boys = total - girls;
+
+      return {
+        text: `בכיתה יש ${total} תלמידים. ${UNIT_FRACTION_WORDS[denom]} מהם בנות.\nכמה בנים וכמה בנות יש בכיתה?`,
+        answer: `${girls} בנות ו-${boys} בנים.`
+      };
+    }
+
+    if(templateChoice === 2){
+      // Unit-rate multiplication: rate per item, scaled up to N items.
+      const ctx = RATE_CONTEXTS[randInt(0, RATE_CONTEXTS.length - 1)];
+      const rate = level === "Easy" ? randInt(1, 5) : (level === "Medium" ? randInt(2, 8) : randInt(3, 12));
+      const count = level === "Easy" ? randInt(2, 4) : (level === "Medium" ? randInt(3, 6) : randInt(4, 10));
+      const total = rate * count;
+
+      return {
+        text: ctx.text(rate, count),
+        answer: `צריך ${total} ${ctx.unit}.`
+      };
+    }
+
+    // Division with a unit conversion: bag size (g) vs. total amount (kg).
+    const bagOptions = level === "Easy" ? [100, 200, 250, 500] : (level === "Medium" ? [100, 125, 200, 250] : [100, 125, 150, 200, 250]);
+    const bagGrams = bagOptions[randInt(0, bagOptions.length - 1)];
+    const bagsCount = level === "Easy" ? randInt(2, 5) : (level === "Medium" ? randInt(4, 8) : randInt(6, 15));
+    const totalGrams = bagGrams * bagsCount;
+    const person = WORD_NAMES[randInt(0, WORD_NAMES.length - 1)];
+
+    return {
+      text: `בשקית קטנה יש ${bagGrams} גרם ממתקים.\nל${person.name} יש ${formatKg(totalGrams)} קילו של ממתקים, כמה שקיות יש ${person.pronoun}?`,
+      answer: `יש ${person.pronoun} ${bagsCount} שקיות.`
+    };
+  }
+
+  function renderWordProblem(problem){
+    output.innerHTML = `
+      <div class="word-problem">
+        ${problem.text}
+        <input type="text" class="answer-input" placeholder="הכניסו את התשובה שלכם" />
+        <div class="answer-line">
+          <span class="reveal">הצג תשובה</span>
+        </div>
+      </div>
+    `;
+    output.querySelector('.reveal').addEventListener('click', (e) => {
+      e.target.outerHTML = `תשובה: ${problem.answer}`;
+    });
+  }
+
+  // ---- Grade 4 extra drills: mixed<->improper conversion, whole-number multiplication ----
+
+  function conversionRanges(level){
+    if(level === "Easy") return { denMax: 6, wholeMax: 5 };
+    if(level === "Medium") return { denMax: 10, wholeMax: 9 };
+    return { denMax: 15, wholeMax: 12 };
+  }
+
+  function generateMixedToImproper(level){
+    const { denMax, wholeMax } = conversionRanges(level);
+    const den = randInt(2, denMax);
+    const num = randInt(1, den - 1);
+    const whole = randInt(1, wholeMax);
+    const improperNum = whole * den + num;
+    return {
+      term: { type: 'mixed', whole, num, den },
+      answer: `${improperNum}/${den}`
+    };
+  }
+
+  function generateImproperToMixed(level){
+    const { denMax, wholeMax } = conversionRanges(level);
+    const den = randInt(2, denMax);
+    const rem = randInt(1, den - 1);
+    const whole = randInt(1, wholeMax);
+    const improperNum = whole * den + rem;
+    return {
+      term: { type: 'frac', num: improperNum, den },
+      answer: `${whole} ${rem}/${den}`
+    };
+  }
+
+  function renderConversion(problem){
+    output.innerHTML = `
+      <div class="equation">
+        ${termHTML(problem.term)}
+        <span class="op">=</span>
+        <span>?</span>
+        <input type="text" class="answer-input" dir="ltr" placeholder="הכניסו את התשובה שלכם" />
+        <div class="answer-line">
+          <span class="reveal">הצג תשובה</span>
+        </div>
+      </div>
+    `;
+    output.querySelector('.reveal').addEventListener('click', (e) => {
+      e.target.outerHTML = `תשובה: ${problem.answer}`;
+    });
+  }
+
+  // Whole-number multiplication: digit-count scales with difficulty.
+  function randDigitNumber(digits){
+    if(digits === 1) return randInt(2, 9);
+    const min = Math.pow(10, digits - 1);
+    const max = Math.pow(10, digits) - 1;
+    return randInt(min, max);
+  }
+
+  function generateMultiplyWhole(level){
+    let aDigits, bDigits;
+
+    if(level === "Easy"){
+      // 2-digit number times a 1 or 2-digit number.
+      aDigits = 2;
+      bDigits = Math.random() < 0.5 ? 1 : 2;
+    } else if(level === "Medium"){
+      // 2 to 4-digit number times a 1 or 2-digit number,
+      // but a 4-digit number only pairs with a 1-digit number.
+      aDigits = [2, 3, 4][randInt(0, 2)];
+      bDigits = (aDigits === 4) ? 1 : (Math.random() < 0.5 ? 1 : 2);
+    } else {
+      // 3 to 4-digit number times a 2-digit number only.
+      aDigits = [3, 4][randInt(0, 1)];
+      bDigits = 2;
+    }
+
+    const a = randDigitNumber(aDigits);
+    const b = randDigitNumber(bDigits);
+    return { tokens: [`${a}`, '\u00d7', `${b}`], value: a * b };
+  }
+
+  // ---- Decimal addition/subtraction (shared logic, used by grade 4 and grade 5) ----
+  // Numbers are generated as scaled integers (e.g. hundredths) so the arithmetic is
+  // always exact -- no floating-point rounding creeps into the displayed result.
+
+  function formatDecimal(scaledValue, decimalPlaces){
+    const scale = Math.pow(10, decimalPlaces);
+    const intPart = Math.floor(scaledValue / scale);
+    const fracPart = scaledValue % scale;
+    return `${intPart}.${String(fracPart).padStart(decimalPlaces, '0')}`;
+  }
+
+  function generateDecimalProblem(level, maxDecimalPlaces, allowSubtraction){
+    let decimalPlaces, intMax;
+
+    if(level === "Easy"){
+      decimalPlaces = 1;
+      intMax = 20;
+    } else if(level === "Medium"){
+      decimalPlaces = Math.min(2, maxDecimalPlaces);
+      intMax = 50;
+    } else {
+      decimalPlaces = (maxDecimalPlaces >= 4) ? randInt(3, 4) : maxDecimalPlaces;
+      intMax = 100;
+    }
+
+    const scale = Math.pow(10, decimalPlaces);
+    let aScaled = randInt(1, intMax * scale);
+    let bScaled = randInt(1, intMax * scale);
+
+    let op = '+';
+    if(allowSubtraction){
+      op = Math.random() < 0.5 ? '+' : '-';
+      // Never allow a negative result.
+      if(op === '-' && aScaled < bScaled){
+        const tmp = aScaled; aScaled = bScaled; bScaled = tmp;
+      }
+    }
+
+    const resultScaled = op === '+' ? aScaled + bScaled : aScaled - bScaled;
+
+    return {
+      tokens: [formatDecimal(aScaled, decimalPlaces), op, formatDecimal(bScaled, decimalPlaces)],
+      value: formatDecimal(resultScaled, decimalPlaces)
+    };
+  }
+
+  // Grade 4: addition only, up to 3 digits after the decimal point.
+  function generateDecimalG4(level){
+    return generateDecimalProblem(level, 3, false);
+  }
+
+  // A curated list of fractions that convert to an exact (terminating) decimal,
+  // paired with that exact decimal string -- avoids any float conversion at all.
+  const NICE_FRACTIONS = [
+    { num: 1, den: 2, decimalStr: '0.5' },
+    { num: 1, den: 4, decimalStr: '0.25' },
+    { num: 3, den: 4, decimalStr: '0.75' },
+    { num: 1, den: 5, decimalStr: '0.2' },
+    { num: 2, den: 5, decimalStr: '0.4' },
+    { num: 3, den: 5, decimalStr: '0.6' },
+    { num: 4, den: 5, decimalStr: '0.8' },
+    { num: 1, den: 10, decimalStr: '0.1' },
+    { num: 3, den: 10, decimalStr: '0.3' },
+    { num: 7, den: 10, decimalStr: '0.7' },
+    { num: 9, den: 10, decimalStr: '0.9' },
+    { num: 1, den: 8, decimalStr: '0.125' },
+    { num: 3, den: 8, decimalStr: '0.375' },
+    { num: 5, den: 8, decimalStr: '0.625' },
+    { num: 7, den: 8, decimalStr: '0.875' }
+  ];
+
+  // Hard-level-only: one operand is shown as a fraction instead of a decimal.
+  // The fraction's exact decimal equivalent still drives the (exact) arithmetic.
+  function generateHardFractionDecimal(maxDecimalPlaces, intMax){
+    const candidates = NICE_FRACTIONS.filter(f => f.decimalStr.split('.')[1].length <= maxDecimalPlaces);
+    const frac = candidates[randInt(0, candidates.length - 1)];
+    const decimalPlaces = frac.decimalStr.split('.')[1].length;
+    const scale = Math.pow(10, decimalPlaces);
+
+    const [intStr, fracStr] = frac.decimalStr.split('.');
+    const fracScaled = parseInt(intStr + fracStr, 10);
+    const otherScaled = randInt(1, intMax * scale);
+
+    const op = Math.random() < 0.5 ? '+' : '-';
+    let fracIsFirst = Math.random() < 0.5;
+    let leftScaled = fracIsFirst ? fracScaled : otherScaled;
+    let rightScaled = fracIsFirst ? otherScaled : fracScaled;
+
+    if(op === '-' && leftScaled < rightScaled){
+      const tmp = leftScaled; leftScaled = rightScaled; rightScaled = tmp;
+      fracIsFirst = !fracIsFirst;
+    }
+
+    const resultScaled = op === '+' ? leftScaled + rightScaled : leftScaled - rightScaled;
+    const fracDisplay = termHTML({ type: 'frac', num: frac.num, den: frac.den });
+    const leftDisplay = fracIsFirst ? fracDisplay : formatDecimal(leftScaled, decimalPlaces);
+    const rightDisplay = fracIsFirst ? formatDecimal(rightScaled, decimalPlaces) : fracDisplay;
+
+    return {
+      tokens: [leftDisplay, op, rightDisplay],
+      value: formatDecimal(resultScaled, decimalPlaces)
+    };
+  }
+
+  // Grade 5: addition and subtraction, up to 4 digits after the decimal point.
+  // At Hard difficulty, about half the problems mix in a fraction operand.
+  function generateDecimalG5(level){
+    if(level === "Hard" && Math.random() < 0.5){
+      return generateHardFractionDecimal(4, 100);
+    }
+    return generateDecimalProblem(level, 4, true);
+  }
+
+  genBtn.addEventListener('click', () => {
+    const level = DIFFICULTIES[diffIndex];
+    if(activeTab === 'fraction'){
+      renderFraction(generateProblem(level));
+    } else if(activeTab === 'arithmetic'){
+      renderArithmetic(generateArithmetic(level));
+    } else if(activeTab === 'toImproper'){
+      renderConversion(generateMixedToImproper(level));
+    } else if(activeTab === 'toMixed'){
+      renderConversion(generateImproperToMixed(level));
+    } else if(activeTab === 'wordProblems'){
+      renderWordProblem(generateWordProblem(level));
+    } else if(activeTab === 'numberLine'){
+      renderNumberLine(generateNumberLine(level));
+    } else if(activeTab === 'decimals'){
+      renderArithmetic(generateDecimalG4(level));
+    } else {
+      renderArithmetic(generateMultiplyWhole(level));
+    }
+  });
+
+  diffBtn.addEventListener('click', () => {
+    diffIndex = (diffIndex + 1) % DIFFICULTIES.length;
+    diffTag.textContent = DIFF_LABELS_HE[DIFFICULTIES[diffIndex]];
+  });
+
+  // ---- Custom test builder: pick drills, generate a stacked list of questions ----
+
+  // Each builder returns { html, answer, kind } for a single question, with no
+  // side effects -- reused both here and could back the single-question tabs too.
+  // kind: 'math' (LTR equation styling), 'word' (RTL paragraph), or 'numberLine'.
+
+  function buildFractionSnippet(problem){
+    let pieces = [termHTML(problem.terms[0])];
+    for(let i = 0; i < problem.ops.length; i++){
+      pieces.push(`<span class="op">${problem.ops[i]}</span>`);
+      pieces.push(termHTML(problem.terms[i + 1]));
+    }
+    const sign = problem.resNum < 0 ? '-' : '';
+    const answer = problem.resDen === 1
+      ? `${problem.resNum}`
+      : `${sign}${Math.abs(problem.resNum)}/${problem.resDen}`;
+    return { html: `${pieces.join(' ')} <span class="op">=</span> <span class="frac"><span class="num">?</span></span>`, answer, kind: 'math' };
+  }
+
+  function buildArithmeticSnippet(problem){
+    const styled = problem.tokens.map(styleToken).join(' ');
+    return { html: `${styled} <span class="op">=</span> <span>?</span>`, answer: `${problem.value}`, kind: 'math' };
+  }
+
+  function buildConversionSnippet(problem){
+    return { html: `${termHTML(problem.term)} <span class="op">=</span> <span>?</span>`, answer: problem.answer, kind: 'math' };
+  }
+
+  function buildWordProblemSnippet(problem){
+    return { html: problem.text, answer: problem.answer, kind: 'word' };
+  }
+
+  function buildNumberLineSnippet(problem, idPrefix){
+    const { values, blankIndices, labelMode } = problem;
+    const count = values.length;
+    const width = Math.max(280, 60 * count);
+    const height = 90;
+    const paddingX = 34;
+    const y = 40;
+    const spacing = (width - 2 * paddingX) / (count - 1);
+
+    let marks = '';
+    for(let i = 0; i < count; i++){
+      const x = paddingX + i * spacing;
+      marks += `<line x1="${x}" y1="${y - 7}" x2="${x}" y2="${y + 7}" style="stroke:var(--chalk); stroke-width:2;" />`;
+      if(labelMode[i] === 'blank'){
+        marks += `<circle cx="${x}" cy="${y + 23}" r="13" style="fill:none; stroke:var(--yellow); stroke-width:2;" />`;
+        marks += `<text id="${idPrefix}_nlBlank${i}" x="${x}" y="${y + 28}" text-anchor="middle" style="fill:var(--yellow); font-size:13px; font-weight:700; font-family:'Rubik',sans-serif;">?</text>`;
+      } else if(labelMode[i] === 'shown'){
+        marks += `<text x="${x}" y="${y + 28}" text-anchor="middle" style="fill:var(--chalk); font-size:12px; font-weight:600; font-family:'Rubik',sans-serif;">${values[i]}</text>`;
+      }
+    }
+
+    const svg = `<svg viewBox="0 0 ${width} ${height}" style="width:100%; max-width:${width}px; direction:ltr; margin-top:8px;">
+        <line x1="${paddingX}" y1="${y}" x2="${width - paddingX}" y2="${y}" style="stroke:var(--chalk); stroke-width:2;" />
+        ${marks}
+      </svg>`;
+
+    const answer = blankIndices.map(i => values[i]).join(', ');
+    return { html: `השלימו את הנקודות החסרות:${svg}`, answer, kind: 'numberLine', blankIndices, values, idPrefix };
+  }
+
+  const DRILL_REGISTRY_G4 = {
+    fraction:     { label: 'שברים',                generate: generateProblem,          build: (p) => buildFractionSnippet(p) },
+    arithmetic:   { label: 'סדר פעולות',            generate: generateArithmetic,       build: (p) => buildArithmeticSnippet(p) },
+    toImproper:   { label: 'מעורב ← לא רגיל',       generate: generateMixedToImproper,  build: (p) => buildConversionSnippet(p) },
+    toMixed:      { label: 'לא רגיל ← מעורב',       generate: generateImproperToMixed,  build: (p) => buildConversionSnippet(p) },
+    multiply:     { label: 'כפל',                   generate: generateMultiplyWhole,    build: (p) => buildArithmeticSnippet(p) },
+    wordProblems: { label: 'בעיות מילוליות',        generate: generateWordProblem,      build: (p) => buildWordProblemSnippet(p) },
+    numberLine:   { label: 'ציר מספרים',            generate: generateNumberLine,       build: (p, idPrefix) => buildNumberLineSnippet(p, idPrefix) },
+    decimals:     { label: 'חיבור עשרוני',          generate: generateDecimalG4,        build: (p) => buildArithmeticSnippet(p) }
+  };
+
+  const DRILL_REGISTRY_G5 = {
+    multiply: { label: 'כפל שברים', generate: generateMultiply, build: (p) => buildFractionSnippet(p) },
+    average: { label: 'ממוצע', generate: generateAverage, build: (p) => buildAverageSnippet(p) },
+    decimals: { label: 'חיבור וחיסור עשרוני', generate: generateDecimalG5, build: (p) => buildArithmeticSnippet(p) }
+  };
+
+  function populateTestCheckboxes(containerEl, registry){
+    containerEl.innerHTML = Object.keys(registry).map(id => `
+      <label class="test-checkbox-label">
+        <input type="checkbox" value="${id}" checked />
+        ${registry[id].label}
+      </label>
+    `).join('');
+  }
+
+  populateTestCheckboxes(document.getElementById('testCheckboxes4'), DRILL_REGISTRY_G4);
+  populateTestCheckboxes(document.getElementById('testCheckboxes5'), DRILL_REGISTRY_G5);
+
+  function renderTest(registry, targetOutput, panelEl, countSelectEl, level){
+    const checkedIds = Array.from(panelEl.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
+    if(checkedIds.length === 0){
+      targetOutput.innerHTML = `<div class="placeholder">בחרו לפחות תרגיל אחד כדי ליצור מבחן.</div>`;
+      return;
+    }
+    const numQuestions = parseInt(countSelectEl.value, 10);
+
+    const items = [];
+    for(let q = 0; q < numQuestions; q++){
+      const drillId = checkedIds[randInt(0, checkedIds.length - 1)];
+      const entry = registry[drillId];
+      const problem = entry.generate(level);
+      items.push(entry.build(problem, `t${q}`));
+    }
+
+    const itemsHTML = items.map((item, i) => {
+      const wrapClass = item.kind === 'math' ? 'equation' : 'word-problem';
+      const inputDir = item.kind === 'word' ? '' : 'dir="ltr"';
+      return `
+        <div class="test-item">
+          <div class="test-q-label">שאלה ${i + 1}</div>
+          <div class="${wrapClass}">${item.html}</div>
+          <input type="text" class="answer-input" ${inputDir} placeholder="הכניסו את התשובה שלכם" />
+          <div class="answer-line">
+            <span class="reveal" data-idx="${i}">הצג תשובה</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    targetOutput.innerHTML = `<div class="test-list">${itemsHTML}</div>`;
+
+    targetOutput.querySelectorAll('.reveal').forEach(el => {
+      el.addEventListener('click', (e) => {
+        const idx = parseInt(e.target.getAttribute('data-idx'), 10);
+        const item = items[idx];
+        if(item.kind === 'numberLine'){
+          item.blankIndices.forEach(bi => {
+            const target = targetOutput.querySelector(`#${item.idPrefix}_nlBlank${bi}`);
+            if(target){
+              target.textContent = `${item.values[bi]}`;
+              target.style.fill = 'var(--chalk)';
+            }
+          });
+          e.target.outerHTML = 'התשובות מוצגות למעלה';
+        } else {
+          e.target.outerHTML = `תשובה: ${item.answer}`;
+        }
+      });
+    });
+  }
+
+  const testPanel4 = document.getElementById('testPanel4');
+  document.getElementById('openTestBuilder4').addEventListener('click', () => {
+    testPanel4.classList.toggle('hidden');
+  });
+  document.getElementById('startTest4').addEventListener('click', () => {
+    renderTest(DRILL_REGISTRY_G4, output, testPanel4, document.getElementById('testCount4'), DIFFICULTIES[diffIndex]);
+  });
+
+  const testPanel5 = document.getElementById('testPanel5');
+  document.getElementById('openTestBuilder5').addEventListener('click', () => {
+    testPanel5.classList.toggle('hidden');
+  });
+  document.getElementById('startTest5').addEventListener('click', () => {
+    renderTest(DRILL_REGISTRY_G5, output5, testPanel5, document.getElementById('testCount5'), DIFFICULTIES[diffIndex5]);
+  });
+</script>
+
+</body>
+</html>
