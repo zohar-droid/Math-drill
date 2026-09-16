@@ -672,8 +672,69 @@
       .eq('user_id', currentUser.id)
       .eq('enabled', false);
     (drillRows || []).forEach(row => blockedDrills.add(`${row.grade}:${row.drill_id}`));
+	
   }
+	async function loadResults() {
+	  console.log('========== LOAD RESULTS ==========');
 
+	  if (!currentUser) {
+		console.error('NO CURRENT USER');
+		return;
+	  }
+
+	  const { data, error } = await supabaseClient
+		.from('results')
+		.select('*')
+		.eq('user_id', currentUser.id);
+
+	  console.log('RESULTS DATA:', data);
+	  console.log('RESULTS ERROR:', error);
+
+	  if (error) {
+		console.error('FAILED TO LOAD RESULTS:', error.message);
+		return;
+	  }
+
+	  if (!data || data.length === 0) {
+		console.warn('NO RESULTS FOUND FOR THIS USER');
+
+		// איפוס התצוגה
+		correctCount = 0;
+		wrongCount = 0;
+		skippedCount = 0;
+
+		correctCountEl.textContent = '0';
+		wrongCountEl.textContent = '0';
+		skippedCountEl.textContent = '0';
+
+		return;
+	  }
+
+	  // איפוס
+	  correctCount = 0;
+	  wrongCount = 0;
+	  skippedCount = 0;
+
+	  // סכימת כל התוצאות של המשתמש
+	  data.forEach(row => {
+		correctCount += Number(row.correct_count) || 0;
+		wrongCount += Number(row.wrong_count) || 0;
+		skippedCount += Number(row.skipped_count) || 0;
+	  });
+
+	  // עדכון המסך
+	  correctCountEl.textContent = correctCount;
+	  wrongCountEl.textContent = wrongCount;
+	  skippedCountEl.textContent = skippedCount;
+
+	  console.log('LOADED TOTALS:', {
+		correct: correctCount,
+		wrong: wrongCount,
+		skipped: skippedCount
+	  });
+
+	  console.log('========== RESULTS LOADED ==========');
+	}
   async function enterApp(){
     const { data: profile } = await supabaseClient
       .from('profiles')
@@ -683,11 +744,14 @@
 
     currentRole = (profile && profile.role) || 'student';
     await loadAccessLists();
-
+	
+	  // טעינת הנתונים מטבלת results
+	await loadResults();
+  
     userBadge.textContent = (profile && profile.nickname) ? `שלום, ${profile.nickname}` : '';
     screenLogin.classList.add('hidden');
     appRoot.classList.remove('hidden');
-
+	
     buildGradeGrid();
     refreshTestCheckboxes();
   }
